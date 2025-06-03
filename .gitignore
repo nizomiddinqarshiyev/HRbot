@@ -1,0 +1,30 @@
+# Python fayllari
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.venv/
+.env
+venv/
+ENV/
+env/
+*.egg-info/
+
+# Google credentials
+credentials.json
+
+# IDE fayllari
+.vscode/
+.idea/
+
+# OS fayllari
+.DS_Store
+Thumbs.db
+
+# Loglar
+*.log
+
+# Replit yoki boshqa servis fayllari
+*.replit
+.replit/
