@@ -155,12 +155,17 @@ def webhook():
     update_data = request.get_json(force=True)
     update = Update.de_json(update_data, application.bot)
 
-    loop = asyncio.get_event_loop()
-    if loop.is_running():
-        loop.create_task(application.process_update(update))
-    else:
-        asyncio.run(application.process_update(update))
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(application.process_update(update))
+        loop.close()
+    except Exception as e:
+        print("Error processing update:", e)
+        return "Internal Server Error", 500
+
     return "OK", 200
+
 
 
 @app_flask.route("/", methods=["GET"])
