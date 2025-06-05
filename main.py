@@ -159,6 +159,7 @@ def index():
 
 # Webhookni o'rnatish
 async def set_webhook():
+    await application.initialize()
     await application.bot.set_webhook(url=WEBHOOK_URL)
 
 if __name__ == "__main__":
