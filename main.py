@@ -9,6 +9,14 @@ from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
 import os
 
+import httpx
+
+client_httpx = httpx.AsyncClient(
+    limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
+    timeout=30.0
+)
+
+
 # Environment o‘zgaruvchilar
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
@@ -22,7 +30,7 @@ sheet = client.open("HR bot data").sheet1
 
 # Flask va Application
 app_flask = Flask(__name__)
-application = Application.builder().token(BOT_TOKEN).connection_pool_size(1000).build()
+application = Application.builder().token(BOT_TOKEN).http_client(client_httpx).build()
 
 # Bosqichlar
 PHOTO, FULLNAME, POSITION, STUDENT, MARITAL, REGION, EXPERIENCE, STRENGTHS = range(8)
