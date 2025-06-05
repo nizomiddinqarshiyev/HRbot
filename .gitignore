@@ -28,3 +28,5 @@ Thumbs.db
 # Replit yoki boshqa servis fayllari
 *.replit
 .replit/
+
+render.yaml

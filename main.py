@@ -9,9 +9,10 @@ from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
 import os
 
-# .env yoki Render Environment Variables da BOT_TOKEN va WEBHOOK_URL ni saqlang
+# Environment o‘zgaruvchilar
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL")  # https://yourapp.onrender.com/webhook
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
+HR_GROUP_CHAT_ID = -1002519174347  # HR guruhi ID
 
 # Google Sheets sozlamalari
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -19,16 +20,14 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", sco
 client = gspread.authorize(creds)
 sheet = client.open("HR bot data").sheet1
 
-# Telegram Guruh ID
-HR_GROUP_CHAT_ID = -1002519174347
-
-# Suhbat bosqichlari
-PHOTO, FULLNAME, POSITION, STUDENT, MARITAL, REGION, EXPERIENCE, STRENGTHS = range(8)
-
+# Flask va Application
 app_flask = Flask(__name__)
 application = Application.builder().token(BOT_TOKEN).connection_pool_size(50).build()
 
-# Boshlanishi
+# Bosqichlar
+PHOTO, FULLNAME, POSITION, STUDENT, MARITAL, REGION, EXPERIENCE, STRENGTHS = range(8)
+
+# /start komandasi
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Iltimos, o'zingizning rasmingizni yuboring:")
     return PHOTO
@@ -41,7 +40,7 @@ async def get_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_fullname(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["fullname"] = update.message.text
-    await update.message.reply_text("Telefon raqamingizni kiriting: (+9989********")
+    await update.message.reply_text("Telefon raqamingizni kiriting: (+9989********)")
     return POSITION
 
 async def get_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -66,7 +65,7 @@ async def get_region(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_experience(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["experience"] = update.message.text
-    await update.message.reply_text("O'zingizdagi ustun hislatlaringizni yozing (masalan: jamoada ishlash, tartib, halollik):")
+    await update.message.reply_text("O'zingizdagi ustun hislatlaringizni yozing:")
     return STRENGTHS
 
 async def get_strengths(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -74,6 +73,7 @@ async def get_strengths(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = update.message.from_user.username or "Noma'lum"
     context.user_data["username"] = username
 
+    # Sheetsga yozish
     sheet.append_row([
         context.user_data["fullname"],
         context.user_data["phone"],
@@ -94,9 +94,9 @@ async def get_strengths(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💼 Ish joylari: {context.user_data['experience']}\n"
         f"🌟 Ustun hislatlari: {context.user_data['strengths']}\n"
         f"🆔 Telegram: @{username}"
-    )
+    ).strip()[:1000]
 
-    buttons = InlineKeyboardMarkup([[
+    buttons = InlineKeyboardMarkup([[  # Tugmalar
         InlineKeyboardButton("✅ Qabul qilindi", callback_data=f"accepted:{update.message.from_user.id}"),
         InlineKeyboardButton("❌ Qilinmadi", callback_data=f"rejected:{update.message.from_user.id}")
     ]])
@@ -111,10 +111,12 @@ async def get_strengths(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Ma'lumotlaringiz saqlandi. Rahmat!")
     return ConversationHandler.END
 
+# Bekor qilish
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Jarayon bekor qilindi.")
     return ConversationHandler.END
 
+# Qabul qilindi/qilinmadi tugmalarini ishlovchi
 async def handle_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -143,13 +145,14 @@ conv_handler = ConversationHandler(
     },
     fallbacks=[CommandHandler("cancel", cancel)],
 )
+
 application.add_handler(conv_handler)
 application.add_handler(CallbackQueryHandler(handle_decision))
 
 # Webhook endpoint
 @app_flask.route("/webhook", methods=["POST"])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), application.bot)
+    update = Update.to_object(request.get_json(force=True))
     asyncio.run(application.process_update(update))
     return "OK", 200
 
@@ -157,12 +160,12 @@ def webhook():
 def index():
     return "Bot ishlayapti!", 200
 
-# Webhookni o'rnatish
-async def set_webhook():
-    await application.initialize()
-    await application.bot.set_webhook(url=WEBHOOK_URL)
-
+# Asosiy ishga tushirish
 if __name__ == "__main__":
+    # Webhookni set qilishni 1 marta tashqi terminalda qo‘lda bajarish tavsiya
     import threading
-    threading.Thread(target=lambda: asyncio.run(set_webhook())).start()
+    async def setup():
+        await application.initialize()
+        await application.bot.set_webhook(url=WEBHOOK_URL)
+    threading.Thread(target=lambda: asyncio.run(setup())).start()
     app_flask.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
