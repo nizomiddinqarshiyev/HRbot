@@ -22,7 +22,7 @@ sheet = client.open("HR bot data").sheet1
 
 # Flask va Application
 app_flask = Flask(__name__)
-application = Application.builder().token(BOT_TOKEN).connection_pool_size(100).build()
+application = Application.builder().token(BOT_TOKEN).connection_pool_size(1000).build()
 
 # Bosqichlar
 PHOTO, FULLNAME, POSITION, STUDENT, MARITAL, REGION, EXPERIENCE, STRENGTHS = range(8)
