@@ -26,7 +26,7 @@ HR_GROUP_CHAT_ID = -1002519174347
 PHOTO, FULLNAME, POSITION, STUDENT, MARITAL, REGION, EXPERIENCE, STRENGTHS = range(8)
 
 app_flask = Flask(__name__)
-application = Application.builder().token(BOT_TOKEN).build()
+application = Application.builder().token(BOT_TOKEN).connection_pool_size(50).build()
 
 # Boshlanishi
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
