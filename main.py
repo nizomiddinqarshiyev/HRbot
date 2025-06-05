@@ -22,7 +22,7 @@ sheet = client.open("HR bot data").sheet1
 
 # Flask va Application
 app_flask = Flask(__name__)
-application = Application.builder().token(BOT_TOKEN).connection_pool_size(50).build()
+application = Application.builder().token(BOT_TOKEN).connection_pool_size(100).build()
 
 # Bosqichlar
 PHOTO, FULLNAME, POSITION, STUDENT, MARITAL, REGION, EXPERIENCE, STRENGTHS = range(8)
@@ -152,9 +152,16 @@ application.add_handler(CallbackQueryHandler(handle_decision))
 # Webhook endpoint
 @app_flask.route("/webhook", methods=["POST"])
 def webhook():
-    update = Update.to_object(request.get_json(force=True))
-    asyncio.run(application.process_update(update))
+    update_data = request.get_json(force=True)
+    update = Update.de_json(update_data, application.bot)
+
+    loop = asyncio.get_event_loop()
+    if loop.is_running():
+        loop.create_task(application.process_update(update))
+    else:
+        asyncio.run(application.process_update(update))
     return "OK", 200
+
 
 @app_flask.route("/", methods=["GET"])
 def index():
