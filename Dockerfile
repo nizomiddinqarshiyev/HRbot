@@ -1,5 +1,5 @@
 # Python 3.10 asosidagi rasm
-FROM python:3.10-slim
+FROM python:3.13-slim
 
 # Ishchi katalog yaratish
 WORKDIR /app
