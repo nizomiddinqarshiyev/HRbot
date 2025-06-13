@@ -6,11 +6,26 @@ from telegram.ext import (
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from telegram.ext import CallbackQueryHandler
+import os
+import json
+from google.oauth2.service_account import Credentials
+from dotenv import load_dotenv
+load_dotenv()
+
+# .env dan string o'qiladi
+google_creds_str = os.environ.get("GOOGLE_CREDS")
+
+# JSON objectga aylantiramiz
+google_creds_dict = json.loads(google_creds_str)
+
+# Autentifikatsiya
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = Credentials.from_service_account_info(google_creds_dict, scopes=scope)
+client = gspread.authorize(creds)
 
 # Google Sheets sozlamalari
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-client = gspread.authorize(creds)
+# creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+# client = gspread.authorize(creds)
 sheet = client.open("HR bot data").sheet1
 
 # Telegram Guruh ID
