@@ -14,7 +14,7 @@ load_dotenv()
 
 # .env dan string o'qiladi
 google_creds_str = os.environ.get("GOOGLE_CREDS")
-
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
 # JSON objectga aylantiramiz
 google_creds_dict = json.loads(google_creds_str)
 
@@ -146,7 +146,7 @@ async def handle_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_caption(caption=query.message.caption + "\n\n🔴 Holat: Rad etildi")
 
 # Botni ishga tushirish
-app = ApplicationBuilder().token("6733146436:AAFjP0ujFQzGLOSNfMs3mzmUQti9jYSg_wg").build()
+app = ApplicationBuilder().token(BOT_TOKEN).build()
 
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler("start", start)],
